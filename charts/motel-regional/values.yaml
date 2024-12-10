@@ -5,6 +5,26 @@ global:
 cert-manager:
   enabled: true
   email: mail@example.net
+external-dns:
+  enabled: false
+  provider:
+    name: aws
+  aws_static_credentials:
+    secretName: external-dns-aws-credentials
+    secrets:
+      aws_access_key_id: <access_key_id>
+      aws_secret_access_key: <secret_access_key>
+  env:
+    - name: AWS_SHARED_CREDENTIALS_FILE
+      value: /etc/aws/credentials/credentials
+  extraVolumeMounts:
+    - name: aws-credentials
+      mountPath: /etc/aws/credentials
+      readOnly: true
+  extraVolumes:
+    - name: aws-credentials
+      secret:
+        secretName: external-dns-aws-credentials
 victoriametrics:
   enabled: true
   vmauth:
@@ -43,3 +63,4 @@ victoria-logs-single:
       storageClassName: ebs-csi-default-sc
   fluent-bit:
     enabled: false
+
