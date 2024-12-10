@@ -1,9 +1,0 @@
-dependencies:
-- name: grafana-operator
-  repository: oci://ghcr.io/grafana/helm-charts
-  version: v5.13.0
-- name: victoria-metrics-operator
-  repository: https://victoriametrics.github.io/helm-charts/
-  version: 0.36.0
-digest: sha256:2292ec0cf4531b9d855f474d8e4162ef142c2e2cf18fd1993aacb217003bb3e5
-generated: "2024-12-03T12:02:24.207706+01:00"
