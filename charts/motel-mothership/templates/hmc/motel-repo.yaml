@@ -3,10 +3,10 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: motel
+  name: {{ .Values.hmc.motel.repo.name }}
   namespace: hmc-system
   labels:
     hmc.mirantis.com/managed: "true"
 spec:
-  url: https://mirantis.github.io/motel/
+  url: {{ .Values.hmc.motel.repo.url }}
 {{- end }}

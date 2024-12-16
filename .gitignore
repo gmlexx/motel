@@ -1,1 +1,4 @@
 charts/*/charts
+bin
+dev/mothership-values.yaml
+external-dns-aws-credentials
