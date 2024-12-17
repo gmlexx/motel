@@ -8,13 +8,28 @@ hmc:
     repo:
       name: motel
       url: https://mirantis.github.io/motel/
+      insecure: false
+      type: "default"
     charts:
       child:
         version: 0.1.2
       regional:
         version: 0.1.2
+
+opentelemetry-operator:
+  enabled: true
+  manager:
+    collectorImage:
+      repository: "otel/opentelemetry-collector-contrib"
+    createRbacPermissions: true
+  clusterRole:
+    create: false
+  admissionWebhooks:
+    autoGenerateCert:
+      enabled: false
+
 victoriametrics:
-  enabled: enabled
+  enabled: true
   vmcluster:
     enabled: true
     replicationFactor: 1
@@ -29,7 +44,6 @@ grafana:
     host: grafana.example.net
   alerts:
     enabled: true
-  promxyDatasourceUrl: ""
   logSources:
     - name: hmc0-logs
       url: https://vmauth.hmc0.example.net/vls
@@ -108,4 +122,3 @@ promxy:
         auth:
           username: motel
           password: motel
-

@@ -9,4 +9,6 @@ metadata:
     hmc.mirantis.com/managed: "true"
 spec:
   url: {{ .Values.hmc.motel.repo.url }}
+  insecure: {{ .Values.hmc.motel.repo.insecure }}
+  type: {{ .Values.hmc.motel.repo.type }}
 {{- end }}
