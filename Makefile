@@ -26,6 +26,9 @@ TEMPLATE_FOLDERS = $(patsubst $(TEMPLATES_DIR)/%,%,$(wildcard $(TEMPLATES_DIR)/*
 
 CHILD_VERSION=$(shell $(YQ) '.version' $(TEMPLATES_DIR)/motel-child/Chart.yaml)
 REGIONAL_VERSION=$(shell $(YQ) '.version' $(TEMPLATES_DIR)/motel-regional/Chart.yaml)
+USER_EMAIL=$(shell git config user.email)
+
+REG_DOMAIN = $(USER)-reg.$(MOTEL_DNS)
 
 
 dev:
@@ -59,19 +62,18 @@ helm-push: helm-package
 		fi; \
 		if [ -z "$$chart_exists" ]; then \
 			echo "Chart $$chart_name version $$chart_version already exists in the repository."; \
+		fi; \
+		if $(REGISTRY_IS_OCI); then \
+			echo "Pushing $$chart to $(REGISTRY_REPO)"; \
+			$(HELM) push "$$chart" $(REGISTRY_REPO); \
 		else \
-			if $(REGISTRY_IS_OCI); then \
-				echo "Pushing $$chart to $(REGISTRY_REPO)"; \
-				$(HELM) push "$$chart" $(REGISTRY_REPO); \
+			if [ ! $$REGISTRY_USERNAME ] && [ ! $$REGISTRY_PASSWORD ]; then \
+				echo "REGISTRY_USERNAME and REGISTRY_PASSWORD must be populated to push the chart to an HTTPS repository"; \
+				exit 1; \
 			else \
-				if [ ! $$REGISTRY_USERNAME ] && [ ! $$REGISTRY_PASSWORD ]; then \
-					echo "REGISTRY_USERNAME and REGISTRY_PASSWORD must be populated to push the chart to an HTTPS repository"; \
-					exit 1; \
-				else \
-					$(HELM) repo add hmc $(REGISTRY_REPO); \
-					echo "Pushing $$chart to $(REGISTRY_REPO)"; \
-					$(HELM) cm-push "$$chart" $(REGISTRY_REPO) --username $$REGISTRY_USERNAME --password $$REGISTRY_PASSWORD; \
-				fi; \
+				$(HELM) repo add hmc $(REGISTRY_REPO); \
+				echo "Pushing $$chart to $(REGISTRY_REPO)"; \
+				$(HELM) cm-push "$$chart" $(REGISTRY_REPO) --username $$REGISTRY_USERNAME --password $$REGISTRY_PASSWORD; \
 			fi; \
 		fi; \
 	done
@@ -80,13 +82,27 @@ helm-push: helm-package
 dev-ms-deploy: dev ## Deploy Mothership helm chart to the K8s cluster specified in ~/.kube/config.
 	cp -f $(TEMPLATES_DIR)/motel-mothership/values.yaml dev/mothership-values.yaml
 	@$(YQ) eval -i '.hmc.installTemplates = true' dev/mothership-values.yaml
-	@$(YQ) eval -i '.grafana.logSources = [{"name": "$(USER)-reg", "url": "https://vmauth.$(USER)-reg.$(MOTEL_DNS)/vls", "type": "victorialogs-datasource", "auth": {"username": "motel", "password": "motel"} }]' dev/mothership-values.yaml
-	@$(YQ) eval -i '.promxy.config.serverGroups = [{"clusterName": "$(USER)-reg", "targets": ["vmauth.$(USER)-reg.$(MOTEL_DNS):443"], "auth": {"username": "motel", "password": "motel"}}]' dev/mothership-values.yaml
+	@$(YQ) eval -i '.grafana.logSources = [{"name": "$(USER)-reg", "url": "https://vmauth.$(REG_DOMAIN)/vls", "type": "victorialogs-datasource", "auth": {"username": "motel", "password": "motel"} }]' dev/mothership-values.yaml
+	@$(YQ) eval -i '.promxy.config.serverGroups = [{"clusterName": "$(USER)-reg", "targets": ["vmauth.$(REG_DOMAIN):443"], "auth": {"username": "motel", "password": "motel"}}]' dev/mothership-values.yaml
 	@$(YQ) eval -i '.hmc.motel.charts.child.version = "$(CHILD_VERSION)"' dev/mothership-values.yaml
 	@$(YQ) eval -i '.hmc.motel.charts.regional.version = "$(REGIONAL_VERSION)"' dev/mothership-values.yaml
 	@if [ "$(REGISTRY_REPO)" = "oci://127.0.0.1:$(REGISTRY_PORT)/charts" ]; then \
 		$(YQ) eval -i '.hmc.motel.repo.url = "oci://$(REGISTRY_NAME):5000/charts"' dev/mothership-values.yaml; \
+		$(YQ) eval -i '.hmc.motel.repo.insecure = true' dev/mothership-values.yaml; \
+		$(YQ) eval -i '.hmc.motel.repo.type = "oci"' dev/mothership-values.yaml; \
 	else \
 		$(YQ) eval -i '.hmc.motel.repo.url = "$(REGISTRY_REPO)"' dev/mothership-values.yaml; \
 	fi; \
+	$(HELM) upgrade -i motel ./charts/motel-mothership -n hmc-system -f dev/mothership-values.yaml
 
+.PHONY: dev-r-deploy
+dev-r-deploy: dev ## Deploy Regional Managed cluster using HMC
+	cp -f demo/cluster/aws-regional.yaml dev/aws-regional.yaml
+	@$(YQ) eval -i '.metadata.name = "$(USER)-aws-reg"' dev/aws-regional.yaml
+	@$(YQ) '.spec.services[] | select(.name == "motel-regional") | .values' dev/aws-regional.yaml > dev/motel-regional-values.yaml
+	@$(YQ) eval -i '.["cert-manager"].email = "$(USER_EMAIL)"' dev/motel-regional-values.yaml
+	@$(YQ) eval -i '.victoriametrics.vmauth.ingress.host = "vmauth.$(REG_DOMAIN)"' dev/motel-regional-values.yaml
+	@$(YQ) eval -i '.grafana.ingress.host = "grafana.$(REG_DOMAIN)"' dev/motel-regional-values.yaml
+	@$(YQ) eval -i '.["external-dns"].enabled = true' dev/motel-regional-values.yaml
+	@$(YQ) eval -i '(.spec.services[] | select(.name == "motel-regional")).values |= load_str("dev/motel-regional-values.yaml")' dev/aws-regional.yaml
+	kubectl apply -f dev/aws-regional.yaml
