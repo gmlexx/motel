@@ -65,6 +65,21 @@ entries:
     urls:
     - https://github.com/gmlexx/motel/releases/download/motel-child-0.1.1/motel-child-0.1.1.tgz
     version: 0.1.1
+  motel-collector:
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2024-12-19T08:46:11.725513339Z"
+    dependencies:
+    - condition: prometheus-operator-crds.enabled
+      name: prometheus-operator-crds
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 15.0.*
+    description: A Helm chart that deploys OpenTelemetryCollector
+    digest: ae3dbdc4d16e2a450ed5e7831d88d856f1cde5750774c954d596512f0a684115
+    name: motel-collector
+    urls:
+    - https://github.com/gmlexx/motel/releases/download/motel-collector-0.0.1/motel-collector-0.0.1.tgz
+    version: 0.0.1
   motel-mothership:
   - apiVersion: v2
     appVersion: "1.0"
@@ -129,4 +144,4 @@ entries:
     urls:
     - https://github.com/gmlexx/motel/releases/download/motel-regional-0.1.2/motel-regional-0.1.2.tgz
     version: 0.1.2
-generated: "2024-12-11T13:55:59.169999861Z"
+generated: "2024-12-19T08:46:12.048991387Z"
