@@ -1,0 +1,21 @@
+{{- if .Values.victoriametrics.enabled }}
+{{- if (index .Values "victoriametrics" "vmauth" | default dict).enabled | default false }}
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAuth
+metadata:
+  name: cluster
+  namespace: {{ .Release.Namespace }}
+spec:
+  ingress:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubernetes.io/tls-acme: "true"
+    class_name: nginx
+    tlsHosts:
+    - {{ .Values.victoriametrics.vmauth.ingress.host | quote }}
+    tlsSecretName: vmauth-tls
+  license: {}
+  port: "8427"
+  selectAllByDefault: true
+{{- end }}
+{{- end }}

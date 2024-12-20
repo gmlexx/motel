@@ -1,0 +1,29 @@
+global:
+  clusterLabel: clusterName
+  clusterName: mothership
+motel:
+  logs_endpoint: http://victoria-logs-single-server:9428/insert/opentelemetry/v1/logs
+  metrics_endpoint: http://vminsert-cluster:8480/insert/0/prometheus/api/v1/write
+prometheus-node-exporter:
+  enabled: true
+  hostNetwork: false
+  service:
+    labels:
+      jobLabel: node-exporter
+  extraArgs:
+    - --collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
+    - --collector.filesystem.ignored-fs-types=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
+  prometheus:
+    monitor:
+      enabled: true
+      http:
+        honorLabels: true
+kube-state-metrics:
+  enabled: true
+  prometheus:
+    monitor:
+      enabled: true
+      http:
+        honorLabels: true
+collectors:
+  enabled: true

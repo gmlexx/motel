@@ -1,0 +1,20 @@
+{{- if .Values.hmc.installTemplates }}
+{{- range $name, $values := .Values.hmc.motel.charts }}
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmChart
+metadata:
+  name: motel-{{ $name }}
+  namespace: hmc-system
+  labels:
+    hmc.mirantis.com/managed: "true"
+spec:
+  chart: motel-{{ $name }}
+  interval: 10m0s
+  reconcileStrategy: ChartVersion
+  sourceRef:
+    kind: HelmRepository
+    name: {{ $.Values.hmc.motel.repo.name }}
+  version: {{ $values.version }}
+{{- end }}
+{{- end }}

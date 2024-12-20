@@ -54,6 +54,7 @@ spec:
     security:
       admin_user: {{ .Values.grafana.security.admin_user | quote }}
       admin_password: {{ .Values.grafana.security.admin_password | quote }}
+{{- if .Values.grafana.ingress.enabled }}
   ingress:
     metadata:
       annotations:
@@ -76,4 +77,5 @@ spec:
         - hosts:
             - {{ .Values.grafana.ingress.host | quote }}
           secretName: grafana-cluster-tls
+{{- end }}
 {{- end }}
