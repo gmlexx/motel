@@ -29,7 +29,8 @@ REGIONAL_VERSION=$(shell $(YQ) '.version' $(TEMPLATES_DIR)/motel-regional/Chart.
 USER_EMAIL=$(shell git config user.email)
 
 REG_DOMAIN = $(USER)-reg.$(MOTEL_DNS)
-
+MOTEL_STORAGE_NAME = motel-storage
+MOTEL_STORAGE_NS = motel-storage
 
 dev:
 	mkdir -p dev
@@ -78,8 +79,36 @@ helm-push: helm-package
 		fi; \
 	done
 
-.PHONY: dev-ms-deploy
-dev-ms-deploy: dev ## Deploy Mothership helm chart to the K8s cluster specified in ~/.kube/config.
+.PHONY: dev-collector-deploy-init-prep
+dev-collector-deploy-init-prep: dev ## Prepare motel-collector helm chart values to install CRDs only
+	cp -f $(TEMPLATES_DIR)/motel-collector/values.yaml dev/collector-values.yaml
+	@$(YQ) eval -i '.motel.logs_endpoint = "http://$(MOTEL_STORAGE_NAME)-victoria-logs-single-server.$(MOTEL_STORAGE_NS):9428/insert/opentelemetry/v1/logs"' dev/collector-values.yaml
+	@$(YQ) eval -i '.motel.metrics_endpoint = "http://vminsert-cluster.$(MOTEL_STORAGE_NS):8480/insert/0/prometheus/api/v1/write"' dev/collector-values.yaml
+.PHONY: dev-collector-deploy
+
+.PHONY: dev-collector-deploy-init
+dev-collector-deploy-init: dev-collector-deploy-init-prep dev ## Deploy motel-collector helm chart to the K8s cluster specified in ~/.kube/config CRDs only
+	$(HELM) upgrade -i motel-collector ./charts/motel-collector --create-namespace -n motel-collector -f dev/collector-values.yaml
+
+.PHONY: dev-collector-deploy
+dev-collector-deploy: dev-collector-deploy-init-prep dev ## Deploy motel-collector helm chart to the K8s cluster specified in ~/.kube/config CRDs only
+	@$(YQ) eval -i '.["prometheus-node-exporter"].enabled = true' dev/collector-values.yaml
+	@$(YQ) eval -i '.["kube-state-metrics"].enabled = true' dev/collector-values.yaml
+	@$(YQ) eval -i '.["collectors"].enabled = true' dev/collector-values.yaml
+	$(HELM) upgrade -i motel-collector ./charts/motel-collector --create-namespace -n motel-collector -f dev/collector-values.yaml
+
+.PHONY: dev-storage-deploy
+dev-storage-deploy: dev ## Deploy motel-storage helm chart to the K8s cluster specified in ~/.kube/config
+	cp -f $(TEMPLATES_DIR)/motel-storage/values.yaml dev/storage-values.yaml
+	@$(YQ) eval -i '.grafana.datasources = [{"name": "logs", "url": "http://$(MOTEL_STORAGE_NAME)-victoria-logs-single-server:9428", "type": "victoriametrics-logs-datasource" }, {"name": "metrics", "url": "http://vmselect-cluster:8481/select/0/prometheus", "type": "prometheus" } ]' dev/storage-values.yaml
+	@$(YQ) eval -i '.grafana.ingress.enabled = false' dev/storage-values.yaml
+	@$(YQ) eval -i '.victoriametrics.vmcluster.replicaCount = 1' dev/storage-values.yaml
+	@$(YQ) eval -i '.global.storageClass = "standard"' dev/storage-values.yaml
+	@$(YQ) eval -i '.["victoria-logs-single"].server.persistentVolume.storageClassName = "standard"' dev/storage-values.yaml
+	$(HELM) upgrade -i $(MOTEL_STORAGE_NAME) ./charts/motel-storage --create-namespace -n $(MOTEL_STORAGE_NS) -f dev/storage-values.yaml
+
+.PHONY: dev-ms-deploy-reg
+dev-ms-deploy-reg: dev ## Deploy Mothership helm chart to the K8s cluster specified in ~/.kube/config for a remote storage cluster
 	cp -f $(TEMPLATES_DIR)/motel-mothership/values.yaml dev/mothership-values.yaml
 	@$(YQ) eval -i '.hmc.installTemplates = true' dev/mothership-values.yaml
 	@$(YQ) eval -i '.grafana.logSources = [{"name": "$(USER)-reg", "url": "https://vmauth.$(REG_DOMAIN)/vls", "type": "victorialogs-datasource", "auth": {"username": "motel", "password": "motel"} }]' dev/mothership-values.yaml
@@ -95,14 +124,3 @@ dev-ms-deploy: dev ## Deploy Mothership helm chart to the K8s cluster specified 
 	fi; \
 	$(HELM) upgrade -i motel ./charts/motel-mothership -n hmc-system -f dev/mothership-values.yaml
 
-.PHONY: dev-r-deploy
-dev-r-deploy: dev ## Deploy Regional Managed cluster using HMC
-	cp -f demo/cluster/aws-regional.yaml dev/aws-regional.yaml
-	@$(YQ) eval -i '.metadata.name = "$(USER)-aws-reg"' dev/aws-regional.yaml
-	@$(YQ) '.spec.services[] | select(.name == "motel-regional") | .values' dev/aws-regional.yaml > dev/motel-regional-values.yaml
-	@$(YQ) eval -i '.["cert-manager"].email = "$(USER_EMAIL)"' dev/motel-regional-values.yaml
-	@$(YQ) eval -i '.victoriametrics.vmauth.ingress.host = "vmauth.$(REG_DOMAIN)"' dev/motel-regional-values.yaml
-	@$(YQ) eval -i '.grafana.ingress.host = "grafana.$(REG_DOMAIN)"' dev/motel-regional-values.yaml
-	@$(YQ) eval -i '.["external-dns"].enabled = true' dev/motel-regional-values.yaml
-	@$(YQ) eval -i '(.spec.services[] | select(.name == "motel-regional")).values |= load_str("dev/motel-regional-values.yaml")' dev/aws-regional.yaml
-	kubectl apply -f dev/aws-regional.yaml

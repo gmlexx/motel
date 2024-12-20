@@ -1,4 +1,4 @@
-{{- if .Values.promxy.deployment.enabled }}
+{{- if .Values.promxy.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,7 +15,7 @@ metadata:
   {{- end }}
 spec:
   replicas: {{ .Values.promxy.replicaCount }}
-  {{- if .Values.promxy.deployment.strategy }}
+  {{- if (.Values.promxy.deployment | default dict).strategy }}
   strategy:
     {{- toYaml .Values.promxy.deployment.strategy | nindent 4 }}
   {{- end }}

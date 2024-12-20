@@ -11,23 +11,10 @@ hmc:
       insecure: false
       type: "default"
     charts:
-      child:
+      collector:
         version: 0.1.2
-      regional:
+      storage:
         version: 0.1.2
-
-opentelemetry-operator:
-  enabled: true
-  manager:
-    collectorImage:
-      repository: "otel/opentelemetry-collector-contrib"
-    createRbacPermissions: true
-  clusterRole:
-    create: false
-  admissionWebhooks:
-    autoGenerateCert:
-      enabled: false
-
 victoriametrics:
   enabled: true
   vmcluster:
@@ -66,8 +53,7 @@ victoria-metrics-operator:
     plain: true
 promxy:
   replicaCount: 1
-  deployment:
-    enabled: true
+  enabled: true
   image:
     repository: quay.io/jacksontj/promxy
     tag: "latest"
