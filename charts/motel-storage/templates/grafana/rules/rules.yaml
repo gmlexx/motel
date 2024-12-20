@@ -1,4 +1,4 @@
-{{- if index .Values "grafana" "enabled" | default false }}
+{{- if .Values.grafana.enabled }}
 {{- if (index .Values "grafana" "alerts" | default dict).enabled | default false }}
 {{- /*
 Default rules alias

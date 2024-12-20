@@ -8,7 +8,7 @@ metadata:
 spec:
   configMaps: []
   datasource:
-    url: http://{{ .Release.Name }}-promxy.{{ .Release.Namespace }}.svc:8082
+    url: http://vmselect-cluster.{{ .Release.Namespace }}.svc:8481/select/0/prometheus
   evaluationInterval: 15s
   externalLabels: {}
   extraArgs:
@@ -18,7 +18,7 @@ spec:
     tag: v1.105.0
   license: {}
   notifiers:
-  - url: http://vmalertmanager-cluster-0.vmalertmanager-cluster.mon.svc:9093/
+  - url: http://vmalertmanager-cluster-0.vmalertmanager-cluster.{{ .Release.Namespace }}.svc:9093/
   port: "8080"
   remoteRead:
     url: {{ .Values.victoriametrics.vmalert.remoteRead | default (printf "http://vmselect-cluster.%s.svc:8481/select/0/prometheus" .Release.Namespace) }} 

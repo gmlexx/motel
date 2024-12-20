@@ -11,23 +11,12 @@ hmc:
       insecure: false
       type: "default"
     charts:
-      child:
+      operators:
+        version: 0.0.1
+      collectors:
+        version: 0.0.1
+      storage:
         version: 0.1.2
-      regional:
-        version: 0.1.2
-
-opentelemetry-operator:
-  enabled: true
-  manager:
-    collectorImage:
-      repository: "otel/opentelemetry-collector-contrib"
-    createRbacPermissions: true
-  clusterRole:
-    create: false
-  admissionWebhooks:
-    autoGenerateCert:
-      enabled: false
-
 victoriametrics:
   enabled: true
   vmcluster:
@@ -47,13 +36,13 @@ grafana:
   logSources:
     - name: hmc0-logs
       url: https://vmauth.hmc0.example.net/vls
-      type: victorialogs-datasource
+      type: victoriametrics-logs-datasource
       auth:
         username: motel
         password: motel
     - name: hmc1-logs
       url: https://vmauth.hmc1.example.net/vls
-      type: victorialogs-datasource
+      type: victoriametrics-logs-datasource
       auth:
         username: motel
         password: motel
@@ -66,8 +55,7 @@ victoria-metrics-operator:
     plain: true
 promxy:
   replicaCount: 1
-  deployment:
-    enabled: true
+  enabled: true
   image:
     repository: quay.io/jacksontj/promxy
     tag: "latest"

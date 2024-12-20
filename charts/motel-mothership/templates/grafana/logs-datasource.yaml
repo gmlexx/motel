@@ -11,7 +11,7 @@ spec:
     access: proxy
     isDefault: false
     name: victorialogs
-    type: "victorialogs-datasource"
+    type: "victoriametrics-logs-datasource"
     url: "http://vmselect-cluster.{{ .Release.Namespace }}:8481"
     basicAuth: true
     basicAuthUser: motel
@@ -35,7 +35,7 @@ spec:
     access: proxy
     isDefault: false
     name: {{ .name }}
-    type: {{ .type | default "victorialogs-datasource" }}
+    type: {{ .type | default "victoriametrics-logs-datasource" }}
     url: {{ .url }}
     basicAuth: true
     basicAuthUser: {{ .auth.username | quote }}

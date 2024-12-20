@@ -1,0 +1,30 @@
+{{- if .Values.grafana.enabled }}
+{{- range .Values.grafana.datasources }}
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  datasource:
+    access: proxy
+    isDefault: false
+    name: {{ .name }}
+    type: {{ .type }}
+    url: {{ .url }}
+    {{- if .auth }}
+    basicAuth: true
+    basicAuthUser: {{ .auth.username | quote }}
+    secureJsonData:
+      basicAuthPassword: {{ .auth.password | quote }}
+    {{- end }}
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  resyncPeriod: 5m
+---
+{{- end }}
+{{- end }}
+

@@ -1,0 +1,48 @@
+global:
+  clusterLabel: clusterName
+  clusterName: mothership
+motel:
+  logs_endpoint: http://victoria-logs-single-server:9428/insert/opentelemetry/v1/logs
+  metrics_endpoint: http://vminsert-cluster:8480/insert/0/prometheus/api/v1/write
+prometheus-node-exporter:
+  enabled: true
+  hostNetwork: false
+  service:
+    labels:
+      jobLabel: node-exporter
+  extraArgs:
+    - --collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
+    - --collector.filesystem.ignored-fs-types=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
+  prometheus:
+    monitor:
+      enabled: true
+      http:
+        honorLabels: true
+kube-state-metrics:
+  enabled: true
+  prometheus:
+    monitor:
+      enabled: true
+      http:
+        honorLabels: true
+collectors:
+  enabled: true
+opencost:
+  enabled: true
+  opencost:
+    prometheus:
+      username: "motel"
+      password: "motel"
+      external:
+        enabled: true
+        url: "https://vmauth.storage0.example.net/vm/select/0/prometheus"
+      internal:
+        enabled: false
+    metrics:
+      serviceMonitor:
+        enabled: true
+    exporter:
+      defaultClusterId: "mothership"
+      extraEnv:
+        EMIT_KSM_V1_METRICS: "false"
+        EMIT_KSM_V1_METRICS_ONLY: "true"

@@ -1,0 +1,13 @@
+prometheus-operator-crds:
+  enabled: true
+opentelemetry-operator:
+  enabled: true
+  manager:
+    collectorImage:
+      repository: "otel/opentelemetry-collector-contrib"
+    createRbacPermissions: true
+  clusterRole:
+    create: false
+  admissionWebhooks:
+    autoGenerateCert:
+      enabled: false

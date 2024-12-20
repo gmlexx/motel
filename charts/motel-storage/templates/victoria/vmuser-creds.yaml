@@ -1,0 +1,12 @@
+{{- if .Values.victoriametrics.enabled }}
+{{- if .Values.victoriametrics.vmauth.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vmuser-creds
+  namespace: {{ .Release.Namespace }}
+type: Opaque
+stringData:
+  password: {{ .Values.victoriametrics.vmauth.credentials.password | default "motel" }}
+{{- end }}
+{{- end }}
