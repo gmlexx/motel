@@ -1,6 +1,6 @@
 # Mirantis OpenTelemery
 This repo contains 4 charts to deploy a monitoring stack using HMC and get metrics into storage clusters, data from which is then aggregated into single grafana interface.
-![alt text](motel-arch.png)
+![alt text](docs/otel.png)
 
 ## Mothership chart
 * central grafana interface
