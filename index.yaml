@@ -80,6 +80,25 @@ entries:
     urls:
     - https://github.com/gmlexx/motel/releases/download/motel-collector-0.0.1/motel-collector-0.0.1.tgz
     version: 0.0.1
+  motel-collectors:
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2024-12-23T16:01:04.041890784Z"
+    dependencies:
+    - condition: prometheus-node-exporter.enabled
+      name: prometheus-node-exporter
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 4.39.*
+    - condition: kube-state-metrics.enabled
+      name: kube-state-metrics
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 5.25.*
+    description: A Helm chart that deploys OpenTelemetryCollector resources
+    digest: 5c53e03b0dc7b3d996c5662bb0d688198b4d9e9d853a0ecb141aedfb0dbc40b5
+    name: motel-collectors
+    urls:
+    - https://github.com/gmlexx/motel/releases/download/motel-collectors-0.0.1/motel-collectors-0.0.1.tgz
+    version: 0.0.1
   motel-mothership:
   - apiVersion: v2
     appVersion: "1.0"
@@ -117,6 +136,25 @@ entries:
     urls:
     - https://github.com/gmlexx/motel/releases/download/motel-mothership-0.1.5/motel-mothership-0.1.5.tgz
     version: 0.1.5
+  motel-operators:
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2024-12-23T16:01:04.338575263Z"
+    dependencies:
+    - condition: opentelemetry-operator.enabled
+      name: opentelemetry-operator
+      repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+      version: 0.75.*
+    - condition: prometheus-operator-crds.enabled
+      name: prometheus-operator-crds
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 15.0.*
+    description: A Helm chart that deploys opentelemetry-operator and prometheus CRDs
+    digest: 81d62074712b36700bcf437fd0cda023f2ab5905bfe2ca7315b5753283590461
+    name: motel-operators
+    urls:
+    - https://github.com/gmlexx/motel/releases/download/motel-operators-0.0.1/motel-operators-0.0.1.tgz
+    version: 0.0.1
   motel-regional:
   - apiVersion: v2
     appVersion: "1.0"
@@ -144,4 +182,31 @@ entries:
     urls:
     - https://github.com/gmlexx/motel/releases/download/motel-regional-0.1.2/motel-regional-0.1.2.tgz
     version: 0.1.2
-generated: "2024-12-19T08:46:12.048991387Z"
+  motel-storage:
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2024-12-23T16:01:04.489922672Z"
+    dependencies:
+    - condition: grafana.enabled
+      name: grafana-operator
+      repository: oci://ghcr.io/grafana/helm-charts
+      version: v5.15.1
+    - condition: victoria-metrics-operator.enabled
+      name: victoria-metrics-operator
+      repository: https://victoriametrics.github.io/helm-charts/
+      version: 0.40.*
+    - condition: victoria-logs-single.enabled
+      name: victoria-logs-single
+      repository: https://victoriametrics.github.io/helm-charts/
+      version: 0.8.*
+    - condition: external-dns.enabled
+      name: external-dns
+      repository: https://kubernetes-sigs.github.io/external-dns/
+      version: 1.15.*
+    description: A Helm chart that deploys Grafana, and VictoriaMetrics.
+    digest: 08b1f9ce87fffed2905d1b352b0f80271fbd47f36025979e5d22141f05ebfd5e
+    name: motel-storage
+    urls:
+    - https://github.com/gmlexx/motel/releases/download/motel-storage-0.1.2/motel-storage-0.1.2.tgz
+    version: 0.1.2
+generated: "2024-12-23T16:01:04.489939123Z"
